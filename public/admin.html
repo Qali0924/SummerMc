@@ -50,7 +50,30 @@
     <br><br>
     <a href="/api/logout" style="color: #ff3333; text-decoration: none; font-weight: bold;">Wyloguj się z panelu</a>
 </div>
-
+// --- ŁADOWANIE KODÓW PSC W PANELU ADMINA ---
+async function loadPSCCodes() {
+    try {
+        const res = await fetch('/api/psc-codes');
+        const codes = await res.json();
+        const container = document.getElementById('psc-codes-list');
+        
+        if (codes.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Brak przesłanych kodów PSC.</p>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        codes.forEach(code => {
+            container.innerHTML += `
+                <div style="padding: 12px; border-bottom: 1px solid #1a1410; font-family: monospace; font-size: 0.9rem; color: #ded9d6;">
+                    ${code}
+                </div>
+            `;
+        });
+    } catch (err) {
+        console.error("Błąd ładowania kodów PSC:", err);
+    }
+}
 <script>
 async function login() {
     const username = document.getElementById('admin-user').value;
