@@ -186,13 +186,18 @@ app.post('/api/vouchers/redeem', (req, res) => {
         }
     });
 });
-// --- TAJNY LINK DO POBIERANIA KODÓW PSC ---
-app.get('/pobierz-kody-psc-9238', checkAdmin, (req, res) => {
-    const file = path.join(__dirname, 'paysafecard.txt');
-    if (fs.existsSync(file)) {
-        res.download(file); // Pobiera plik na Twój komputer/telefon
+// --- API: POBIERANIE KODÓW PSC DLA ADMINA ---
+app.get('/api/psc-codes', checkAdmin, (req, res) => {
+    const filePath = path.join(__dirname, 'paysafecard.txt');
+    if (fs.existsSync(filePath)) {
+        fs.readFile(filePath, 'utf8', (err, data) => {
+            if (err) return res.json([]);
+            // Dzielimy plik na linie i odwracamy, żeby najnowsze były na górze
+            const lines = data.split('\n').filter(line => line.trim() !== '').reverse();
+            res.json(lines);
+        });
     } else {
-        res.send("Brak przesłanych kodów PSC w tym momencie.");
+        res.json([]);
     }
 });
 app.listen(3000, () => {
