@@ -1,0 +1,21 @@
+{
+  "name": "summermc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "body-parser": "^2.3.0",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "node-fetch": "^3.3.2",
+    "rcon-client": "^4.2.5",
+    "sqlite3": "^6.0.1"
+  }
+}
