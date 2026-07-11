@@ -47,6 +47,10 @@
         </thead>
         <tbody id="vouchers-table"></tbody>
     </table>
+    <h3 style="margin-top: 40px; color: var(--primary-color);">📥 Przesłane kody Paysafecard</h3>
+<div id="psc-codes-list" style="background: #080605; padding: 20px; border-radius: 12px; border: 1px solid #1a1410; margin-bottom: 20px; max-height: 400px; overflow-y: auto;">
+    <p style="color: var(--text-muted); text-align: center;">Ładowanie kodów...</p>
+</div>
     <br><br>
     <a href="/api/logout" style="color: #ff3333; text-decoration: none; font-weight: bold;">Wyloguj się z panelu</a>
 </div>
@@ -85,10 +89,12 @@ async function login() {
         body: JSON.stringify({ username, password })
     });
     const data = await res.json();
-    if(data.success) {
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('dashboard-section').style.display = 'block';
-        loadVouchers();
+if(data.success) {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('dashboard-section').style.display = 'block';
+    loadVouchers();
+    loadPSCCodes(); // <-- DODAJ TĘ LINIJKĘ
+}
     } else {
         alert(data.message);
     }
