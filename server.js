@@ -186,7 +186,15 @@ app.post('/api/vouchers/redeem', (req, res) => {
         }
     });
 });
-
+// --- TAJNY LINK DO POBIERANIA KODÓW PSC ---
+app.get('/pobierz-kody-psc-9238', checkAdmin, (req, res) => {
+    const file = path.join(__dirname, 'paysafecard.txt');
+    if (fs.existsSync(file)) {
+        res.download(file); // Pobiera plik na Twój komputer/telefon
+    } else {
+        res.send("Brak przesłanych kodów PSC w tym momencie.");
+    }
+});
 app.listen(3000, () => {
     console.log('Serwer SummerMC działa pod adresem: http://localhost:3000');
 });
