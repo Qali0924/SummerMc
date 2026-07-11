@@ -192,7 +192,6 @@ app.get('/api/psc-codes', checkAdmin, (req, res) => {
     if (fs.existsSync(filePath)) {
         fs.readFile(filePath, 'utf8', (err, data) => {
             if (err) return res.json([]);
-            // Dzielimy plik na linie i odwracamy, żeby najnowsze były na górze
             const lines = data.split('\n').filter(line => line.trim() !== '').reverse();
             res.json(lines);
         });
