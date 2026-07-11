@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SummerMC.pl - Sklep Serwera</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Kontener na dynamiczne Toasty -->
+<div class="toast-container" id="toastContainer"></div>
+
+<header>
+    <div class="logo" onclick="window.location.href='index.html'">SUMMER<span>MC</span></div>
+    <nav>
+        <a href="index.html" class="active">Strona główna</a>
+        <a href="voucher.html">Voucher</a>
+        <a onclick="openModal('regulamin')">Regulamin</a>
+    </nav>
+    <div class="online-players-nav"><span id="players-nav">Ładowanie...</span> osób online</div>
+    <button class="btn-top">Doładowanie portfela</button>
+</header>
+
+<div class="container">
+    <div class="server-card">
+        <div class="online-players-nav" style="justify-content: center; margin-bottom: 20px;">
+            <span id="players-card">Ładowanie...</span> osób online
+        </div>
+        <h1>SUMMERMC.PL</h1>
+        <p>INNOWACYJNY SERWER MINECRAFT</p>
+        <img class="avatar-img" src="images/minecraft_character.webp" alt="Minecraft Character">
+        <button class="btn-orange" onclick="copyIP()">SKOPIUJ IP</button>
+    </div>
+
+    <div class="shop-card">
+        <h2>DOŁADOWANIE PORTFELA</h2>
+        
+        <div class="form-group">
+            <label>Podaj Twój Nick z gry</label>
+            <input type="text" id="player-pay-nick" placeholder="np. mr_kamiz">
+        </div>
+
+        <p style="color: var(--primary-color); font-size: 0.8rem; font-weight: 700; margin-top:10px; text-transform: uppercase;">Wybierz kwotę doładowania</p>
+
+        <!-- NAPRAWIONA SIATKA CENNIKA ( pricing-grid ) -->
+        <div class="pricing-grid">
+            <div class="price-item active" onclick="selectPrice(5)">
+                <img src="images/5.webp" alt="coin">
+                <div>5 vPLN</div>
+            </div>
+            
+            <div class="price-item" onclick="selectPrice(10)">
+                <img src="images/10.webp" alt="coin">
+                <div>10 vPLN</div>
+            </div>
+
+            <div class="price-item" onclick="selectPrice(20)">
+                <img src="images/20.webp" alt="coin">
+                <div>20 vPLN</div>
+            </div>
+        </div>
+
+        <p style="color: var(--primary-color); font-size: 0.8rem; font-weight: 700; margin-top:20px; text-transform: uppercase;">Wybierz metodę płatności</p>
+        <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+            <button id="btn-select-blik" onclick="setMethod('BLIK')" style="flex: 1; padding: 12px; background: #080605; border: 1px solid var(--primary-color); border-radius: 8px; color: white; cursor: pointer; font-weight: bold; transition: 0.3s;">BLIK Przelew</button>
+            <button id="btn-select-psc" onclick="setMethod('PSC')" style="flex: 1; padding: 12px; background: #080605; border: 1px solid #1a1410; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; transition: 0.3s;">Paysafecard</button>
+        </div>
+
+        <!-- Sekcja BLIK -->
+        <div id="payment-area-blik" style="background: #050404; padding: 22px; border-radius: 12px; border: 1px solid #1a1410; margin-bottom: 20px;">
+            <h4 style="margin-top:0; color: var(--primary-color);">Instrukcja płatności BLIK</h4>
+            <p style="font-size:0.85rem; line-height:1.6; margin-bottom:10px;">
+                1. Wyślij przelew na telefon BLIK na numer: <strong id="blik-phone" style="color:var(--primary-color); font-size: 1rem;">736-630-465</strong><br>
+                2. Kwota przelewu: <strong id="blik-amount" style="color:white;">5.00 PLN</strong><br>
+                3. Tytuł przelewu (kliknij, aby skopiować):
+            </p>
+            <input type="text" id="blik-title" readonly style="background:#0c0908; text-align:center; font-weight:bold; color:var(--primary-color); cursor: pointer;" onclick="copyBlikTitle()">
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:12px;">
+                Po wysłaniu przelewu skontaktuj się z administracją na Discordzie. Otrzymasz kod vouchera do wpisania w sekcji "Voucher"!
+            </p>
+        </div>
+
+        <!-- Sekcja PSC -->
+        <div id="payment-area-psc" style="background: #050404; padding: 22px; border-radius: 12px; border: 1px solid #1a1410; margin-bottom: 20px; display:none;">
+            <h4 style="margin-top:0; color: var(--primary-color);">Płatność Paysafecard</h4>
+            <p style="font-size:0.85rem; line-height:1.6; margin-bottom: 15px;">Wprowadź 16-cyfrowy kod z karty Paysafecard o wartości min. <strong id="psc-needed-amount" style="color: white;">5.00</strong> PLN:</p>
+            <input type="text" id="psc-code-input" placeholder="0000-0000-0000-0000" style="text-align:center; font-size:1.1rem; letter-spacing:1px; margin-bottom:20px; display: block; width: 100%;">
+            <button class="btn-orange" onclick="submitPSC()">Wyślij kod Paysafecard</button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <span>Do zapłaty:</span>
+            <span id="price-total" style="font-weight: 800; color: var(--primary-color); font-size: 1.1rem;">5.00 PLN</span>
+        </div>
+    </div>
+</div>
+
+<!-- Ostatnie Zakupy -->
+<div class="recent-purchases-container">
+    <div class="recent-purchases-title">Ostatnie zakupy</div>
+    <div class="heads-list" id="recent-buyers-list"></div>
+</div>
+
+<!-- Powiadomienie Cookie -->
+<div class="cookie-banner" id="cookieBanner">
+    <p>Korzystając ze strony akceptujesz <a onclick="openModal('regulamin')">regulamin</a> oraz <a onclick="openModal('polityka')">politykę prywatności</a>.</p>
+    <button onclick="acceptCookies()">OK, ROZUMIEM</button>
+</div>
+
+<!-- MODAL: REGULAMIN -->
+<div class="modal-overlay" id="modal-regulamin">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>REGULAMIN SERWISU SUMMERMC</h3>
+            <button class="modal-close" onclick="closeModal('regulamin')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h4>§1. Postanowienia ogólne</h4>
+            <p>1. Niniejszy Regulamin określa warunki, zasady oraz ramy prawne funkcjonowania i korzystania ze sklepu internetowego serwera Minecraft SummerMC, dostępnego pod domeną summermc.6mc.pl.</p>
+            <p>2. Każda osoba korzystająca ze sklepu, dokonująca zakupu lub zasilająca wirtualny portfel, oświadcza, że zapoznała się z treścią regulaminu i bezwarunkowo go akceptuje.</p>
+            <p>3. Właścicielem serwera oraz podmiotem zarządzającym sklepem jest SummerMC Solutions.</p>
+
+            <h4>§2. Definicje</h4>
+            <p>1. <strong>Użytkownik (Gracz)</strong> – osoba fizyczna posiadająca aktywne i licencjonowane lub nielicencjonowane konto w grze Minecraft, korzystająca z zasobów serwera SummerMC.</p>
+            <p>2. <strong>vPLN (Wirtualne punkty)</strong> – jednostki rozliczeniowe wewnątrz serwisu, nieposiadające statusu realnego środka płatniczego, służące wyłącznie do aktywacji usług w grze.</p>
+            <p>3. <strong>Voucher</strong> – alfanumeryczny jednorazowy kod uprawniający do natychmiastowej aktywacji komend i nagród na serwerze.</p>
+
+            <h4>§3. Zasady dokonywania płatności i zwroty</h4>
+            <p>1. Doładowanie portfela vPLN odbywa się za pomocą dostępnych metod: przelew BLIK na telefon oraz przekazanie kodów kart Paysafecard.</p>
+            <p>2. Wszystkie wirtualne towary oraz doładowania vPLN są generowane natychmiastowo po zaksięgowaniu wpłaty i mają charakter usług cyfrowych.</p>
+            <p>3. Ze względu na fakt, że przedmioty oraz vPLN są dostarczane natychmiast na serwerze gry, Użytkownik wyraża zgodę na rozpoczęcie świadczenia usługi przed upływem terminu do odstąpienia od umowy, co skutkuje <strong>utratą prawa do odstąpienia od umowy oraz brakiem zwrotów</strong>.</p>
+            <p>4. Próby wyłudzania wirtualnych przedmiotów, fałszowania potwierdzeń przelewów lub podawania nieprawdziwych kodów Paysafecard będą skutkowały stałą blokadą IP na serwerze i zgłoszeniem do odpowiednich organów.</p>
+
+            <h4>§4. Reklamacje i Odpowiedzialność</h4>
+            <p>1. Wszelkie zakłócenia w działaniu sklepu lub błędy w dostarczeniu wirtualnych monet należy zgłaszać poprzez zgłoszenie (ticket) na oficjalnym serwerze Discord serwera.</p>
+            <p>2. Serwer zastrzega sobie prawo do modyfikacji oferty sklepu, zmian cen oraz modyfikacji działania wirtualnych ulepszeń w celach bilansowania rozgrywki.</p>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: POLITYKA PRYWATNOŚCI -->
+<div class="modal-overlay" id="modal-polityka">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>POLITYKA PRYWATNOŚCI</h3>
+            <button class="modal-close" onclick="closeModal('polityka')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h4>§1. Informacje ogólne</h4>
+            <p>1. Niniejsza Polityka prywatności określa zasady przetwarzania, gromadzenia oraz ochrony danych osobowych Użytkowników sklepu serwera SummerMC.</p>
+            <p>2. Bezpieczeństwo danych naszych graczy traktujemy priorytetowo. Dane przetwarzane są zgodnie z Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2016/679 (RODO).</p>
+
+            <h4>§2. Administrator danych oraz kontakt</h4>
+            <p>Administratorem danych osobowych przetwarzanych w ramach sklepu internetowego jest zespół zarządzający serwerem SummerMC Solutions. Kontakt z administratorem możliwy jest drogą elektroniczną na naszym serwerze Discord.</p>
+
+            <h4>§3. Zakres oraz cele przetwarzania danych</h4>
+            <p>Podczas korzystania ze sklepu gromadzimy i przetwarzamy następujące kategorie danych w określonych celach:</p>
+            <ul>
+                <li><strong>Pseudonim (Nick) z gry Minecraft:</strong> Przetwarzany w celu wysłania właściwej komendy RCON na serwer i przyznania wirtualnej usługi w grze.</li>
+                <li><strong>Adres IP Użytkownika:</strong> Przetwarzany automatycznie przez serwer WWW w celach bezpieczeństwa, zapobiegania atakom DDoS oraz przeciwdziałania oszustwom finansowym.</li>
+                <li><strong>Logi płatności Paysafecard:</strong> Kody kart PSC są zapisywane w pliku i przetwarzane wyłącznie w celu weryfikacji pokrycia transakcji i ręcznego wydania usługi.</li>
+            </ul>
+
+            <h4>§4. Udostępnianie i okres przechowywania danych</h4>
+            <p>1. Dane osobowe (Nick z gry) mogą być przesyłane do zewnętrznych API (np. mc-heads.net) w celu pobrania wizerunku skina 3D i wyświetlenia go w sekcji "Ostatnie zakupy".</p>
+            <p>2. Dane dotyczące płatności oraz logi systemowe przechowujemy przez okres niezbędny do celów podatkowych, reklamacyjnych oraz bezpieczeństwa prawnego, nie dłużej jednak niż przez okres 2 lat od momentu transakcji.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Stopka -->
+<footer>
+    <div class="footer-content">
+        <div class="footer-left">
+            <h3>COPYRIGHT 2026 SUMMERMC.PL</h3>
+            <p class="sub">INNOWACYJNY SERWER MINECRAFT</p>
+            <p class="desc">
+                Serwer summermc.6mc.pl nie jest w żaden sposób powiązany z Mojang AB.<br>
+                Usługi realizuje SummerMC Solutions.
+            </p>
+        </div>
+        <div class="footer-links">
+            <div class="link-group">
+                <h4>Nawigacja</h4>
+                <ul>
+                    <li><a href="index.html">Strona główna</a></li>
+                    <li><a href="voucher.html">Voucher</a></li>
+                </ul>
+            </div>
+            <div class="link-group">
+                <h4>Dokumenty</h4>
+                <ul>
+                    <li><a onclick="openModal('regulamin')">Regulamin</a></li>
+                    <li><a onclick="openModal('polityka')">Polityka prywatności</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    let selectedAmount = 5;
+    let selectedMethod = 'BLIK';
+
+    function showToast(title, desc, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = 'ℹ';
+        if(type === 'success') icon = '✓';
+        if(type === 'error') icon = '✕';
+
+        toast.innerHTML = `
+            <div class="toast-icon">${icon}</div>
+            <div>
+                <div class="toast-title">${title}</div>
+                <div class="toast-desc">${desc}</div>
+            </div>
+        `;
+        
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('active'), 10);
+        setTimeout(() => {
+            toast.classList.remove('active');
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
+
+    async function loadBlikDetails() {
+        try {
+            const res = await fetch('/api/payment/blik-details');
+            const data = await res.json();
+            if (data.phone) {
+                document.getElementById('blik-phone').innerText = data.phone;
+            } else {
+                document.getElementById('blik-phone').innerText = "736-630-465";
+            }
+        } catch (err) {
+            document.getElementById('blik-phone').innerText = "736-630-465";
+        }
+    }
+
+    function selectPrice(amount) {
+        selectedAmount = amount;
+        document.querySelectorAll('.price-item').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        
+        document.getElementById('price-total').innerText = amount.toFixed(2) + " PLN";
+        document.getElementById('blik-amount').innerText = amount.toFixed(2) + " PLN";
+        document.getElementById('psc-needed-amount').innerText = amount.toFixed(2);
+        
+        updateBlikTitle();
+        showToast("Zmieniono kwotę!", `Doładujesz konto kwotą ${amount.toFixed(2)} PLN`, "info");
+    }
+
+    function setMethod(method) {
+        selectedMethod = method;
+        if(method === 'BLIK') {
+            document.getElementById('payment-area-blik').style.display = 'block';
+            document.getElementById('payment-area-psc').style.display = 'none';
+            document.getElementById('btn-select-blik').style.borderColor = 'var(--primary-color)';
+            document.getElementById('btn-select-psc').style.borderColor = '#1a1410';
+        } else {
+            document.getElementById('payment-area-blik').style.display = 'none';
+            document.getElementById('payment-area-psc').style.display = 'block';
+            document.getElementById('btn-select-blik').style.borderColor = '#1a1410';
+            document.getElementById('btn-select-psc').style.borderColor = 'var(--primary-color)';
+        }
+    }
+
+    function updateBlikTitle() {
+        const nick = document.getElementById('player-pay-nick').value || 'NICK';
+        const randomCode = Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('blik-title').value = `SUMMERMC ${nick.toUpperCase()} [${randomCode}]`;
+    }
+
+    document.getElementById('player-pay-nick').addEventListener('input', updateBlikTitle);
+
+    function copyBlikTitle() {
+        const titleField = document.getElementById('blik-title');
+        titleField.select();
+        navigator.clipboard.writeText(titleField.value);
+        showToast("Skopiowano tytuł!", "Użyj go dokładnie w przelewie BLIK", "success");
+    }
+
+    async function submitPSC() {
+        const nick = document.getElementById('player-pay-nick').value;
+        const psc_code = document.getElementById('psc-code-input').value;
+
+        if(!nick) {
+            showToast("Wprowadź Nick!", "Najpierw musisz podać swój nick na górze formularza", "error");
+            return;
+        }
+        if(!psc_code) {
+            showToast("Brak kodu!", "Proszę wpisać 16-cyfrowy kod PSC", "error");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/payment/psc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nick: nick, amount: selectedAmount, psc_code: psc_code })
+            });
+            const data = await res.json();
+            
+            if(data.success) {
+                showToast("Przesłano kod!", data.message, "success");
+                document.getElementById('psc-code-input').value = '';
+            } else {
+                showToast("Błąd kodu!", data.message, "error");
+            }
+        } catch (err) {
+            showToast("Błąd połączenia!", "Nie udało się przesłać kodu na serwer.", "error");
+        }
+    }
+
+    function copyIP() {
+        navigator.clipboard.writeText('summermc.6mc.pl');
+        showToast("Skopiowano adres IP!", "Dodaj summermc.6mc.pl do listy serwerów", "success");
+    }
+
+    function openModal(id) {
+        document.getElementById('modal-' + id).classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(id) {
+        document.getElementById('modal-' + id).classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    async function updateOnlineStatus() {
+        try {
+            const res = await fetch('/api/server-status');
+            const data = await res.json();
+            const count = data.online ? data.players : 0;
+            document.getElementById('players-nav').innerText = count;
+            document.getElementById('players-card').innerText = count;
+        } catch {
+            document.getElementById('players-nav').innerText = "0";
+            document.getElementById('players-card').innerText = "0";
+        }
+    }
+
+    async function loadRecentPurchases() {
+        try {
+            const res = await fetch('/api/purchases/recent');
+            const buyers = await res.json();
+            const container = document.getElementById('recent-buyers-list');
+            container.innerHTML = '';
+            buyers.forEach(buyer => {
+                container.innerHTML += `
+                    <div class="head-item" title="Zakup dla: ${buyer.nick}">
+                        <img src="https://mc-heads.net/avatar/${buyer.nick}" alt="${buyer.nick}">
+                    </div>
+                `;
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function acceptCookies() {
+        document.getElementById('cookieBanner').style.opacity = '0';
+        setTimeout(() => { document.getElementById('cookieBanner').style.display = 'none'; }, 500);
+        showToast("Zaakceptowano zasady!", "Twoja zgoda została pomyślnie zapisana.", "success");
+    }
+
+    updateOnlineStatus();
+    loadRecentPurchases();
+    loadBlikDetails();
+    updateBlikTitle();
+    setInterval(updateOnlineStatus, 20000);
+</script>
+</body>
+</html>

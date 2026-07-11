@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>SummerMC.pl - Zrealizuj Voucher</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<header>
+    <div class="logo" onclick="window.location.href='index.html'">SUMMER<span>MC</span></div>
+    <nav>
+        <a href="index.html">Strona główna</a>
+        <a href="voucher.html" class="active">Voucher</a>
+        <a onclick="openModal('regulamin')">Regulamin</a>
+    </nav>
+    <div class="online-players-nav"><span id="players-nav">Ładowanie...</span> osób online</div>
+</header>
+
+<div class="container">
+    <div class="server-card">
+        <h1>SUMMERMC.PL</h1>
+        <p>INNOWACYJNY SERWER MINECRAFT</p>
+        <img class="avatar-img" src="images/minecraft_character.webp" alt="Minecraft Character">
+    </div>
+
+    <div class="shop-card">
+        <h2>ZREALIZUJ VOUCHER</h2>
+        
+        <div class="form-group">
+            <label>Podaj nick</label>
+            <input type="text" id="player-nick" placeholder="mr_kamiz">
+        </div>
+
+        <div class="form-group">
+            <label>Podaj kod voucher</label>
+            <input type="text" id="voucher-code" placeholder="np. 43423232">
+        </div>
+
+        <p style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.5; margin-bottom: 25px;">
+            Kody voucher można otrzymać w różnych eventach organizowanych na serwerze lub w konkursach.
+        </p>
+
+        <button class="btn-orange" onclick="redeemVoucher()">Zrealizuj kod voucher</button>
+    </div>
+</div>
+
+<!-- MODAL: REGULAMIN -->
+<div class="modal-overlay" id="modal-regulamin">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>REGULAMIN SERWISU SUMMERMC</h3>
+            <button class="modal-close" onclick="closeModal('regulamin')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h4>§1. Postanowienia ogólne</h4>
+            <p>1. Niniejszy Regulamin określa warunki, zasady oraz ramy prawne...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function showToast(title, desc, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    let icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+    
+    toast.innerHTML = `
+        <div class="toast-icon">${icon}</div>
+        <div>
+            <div class="toast-title">${title}</div>
+            <div class="toast-desc">${desc}</div>
+        </div>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('active'), 10);
+    setTimeout(() => {
+        toast.classList.remove('active');
+        setTimeout(() => toast.remove(), 500);
+    }, 4000);
+}
+
+async function redeemVoucher() {
+    const nick = document.getElementById('player-nick').value;
+    const code = document.getElementById('voucher-code').value;
+
+    if(!nick || !code) {
+        showToast("Uzupełnij dane!", "Wprowadź nick oraz kod vouchera", "error");
+        return;
+    }
+
+    showToast("Łączenie...", "Wysyłanie sygnału do serwera gry...", "info");
+
+    try {
+        const response = await fetch('/api/vouchers/redeem', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nick, code })
+        });
+        const data = await response.json();
+
+        if(data.success) {
+            showToast("Sukces!", data.message, "success");
+            document.getElementById('voucher-code').value = '';
+        } else {
+            showToast("Błąd!", data.message, "error");
+        }
+    } catch(e) {
+        showToast("Błąd serwera!", "Serwer gry jest w tym momencie niedostępny.", "error");
+    }
+}
+
+function openModal(id) {
+    document.getElementById('modal-' + id).classList.add('active');
+}
+function closeModal(id) {
+    document.getElementById('modal-' + id).classList.remove('active');
+}
+</script>
+</body>
+</html>

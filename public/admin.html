@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>SummerMC - Zarządzanie</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-box { max-width: 700px; margin: 60px auto; background: var(--card-bg); padding: 40px; border-radius: 20px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        th, td { padding: 14px; border: 1px solid var(--border-color); text-align: left; }
+        th { background: #140e0a; color: var(--primary-color); }
+    </style>
+</head>
+<body>
+
+<div id="login-section" class="admin-box">
+    <h2>Zaloguj do Panelu SummerMC</h2>
+    <div class="form-group">
+        <label>Użytkownik</label>
+        <input type="text" id="admin-user" placeholder="Wpisz login">
+    </div>
+    <div class="form-group">
+        <label>Hasło</label>
+        <input type="password" id="admin-pass" placeholder="Wpisz hasło">
+    </div>
+    <button class="btn-orange" onclick="login()">ZALOGUJ SIĘ</button>
+</div>
+
+<div id="dashboard-section" class="admin-box" style="display:none; max-width: 950px;">
+    <h2>Zarządzanie Voucherami</h2>
+    
+    <div style="display: flex; gap: 20px; margin-bottom: 30px; margin-top: 20px;">
+        <input type="text" id="new-code" placeholder="KOD-VOUCHERA">
+        <input type="text" id="new-cmd" placeholder="Komenda np: lp user {nick} parent set vip">
+        <button class="btn-orange" onclick="createVoucher()" style="width: 200px;">Stwórz Voucher</button>
+    </div>
+
+    <h3>Spis wszystkich wygenerowanych kodów</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Kod</th>
+                <th>Komenda w grze</th>
+                <th>Status</th>
+                <th>Zrealizował</th>
+            </tr>
+        </thead>
+        <tbody id="vouchers-table"></tbody>
+    </table>
+    <br><br>
+    <a href="/api/logout" style="color: #ff3333; text-decoration: none; font-weight: bold;">Wyloguj się z panelu</a>
+</div>
+
+<script>
+async function login() {
+    const username = document.getElementById('admin-user').value;
+    const password = document.getElementById('admin-pass').value;
+
+    const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if(data.success) {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('dashboard-section').style.display = 'block';
+        loadVouchers();
+    } else {
+        alert(data.message);
+    }
+}
+
+async function createVoucher() {
+    const code = document.getElementById('new-code').value;
+    const reward_cmd = document.getElementById('new-cmd').value;
+
+    const res = await fetch('/api/vouchers/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, reward_cmd })
+    });
+    const data = await res.json();
+    alert(data.message);
+    loadVouchers();
+}
+
+async function loadVouchers() {
+    const res = await fetch('/api/vouchers/list');
+    const vouchers = await res.json();
+    const tbody = document.getElementById('vouchers-table');
+    tbody.innerHTML = '';
+    vouchers.forEach(v => {
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${v.code}</strong></td>
+                <td><code>${v.reward_cmd}</code></td>
+                <td style="color: ${v.used ? 'red' : '#4caf50'}">${v.used ? 'Zużyty' : 'Aktywny'}</td>
+                <td>${v.used_by || '-'}</td>
+            </tr>
+        `;
+    });
+}
+</script>
+</body>
+</html>
