@@ -17,7 +17,7 @@ const SETTINGS = {
 };
 
 const RCON_CONFIG = {
-    host: "summermc.6mc.pl",
+    host: "83.168.94.254",
     port: 21007,
     password: "summermc2026"
 };
