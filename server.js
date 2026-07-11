@@ -144,7 +144,11 @@ function checkAdmin(req, res, next) {
 }
 
 app.post('/api/vouchers/create', checkAdmin, (req, res) => {
-    const { code, reward_cmd } = req.body;
+    let { code, reward_cmd } = req.body;
+    
+    // Usuwamy zbędne spacje przy tworzeniu kodu
+    code = code.trim();
+    
     db.run(`INSERT INTO vouchers (code, reward_cmd) VALUES (?, ?)`, [code, reward_cmd], (err) => {
         if (err) return res.json({ success: false, message: "Kod już istnieje!" });
         res.json({ success: true, message: "Voucher gotowy!" });
@@ -156,11 +160,18 @@ app.get('/api/vouchers/list', checkAdmin, (req, res) => {
 });
 
 app.post('/api/vouchers/redeem', (req, res) => {
-    const { nick, code } = req.body;
+    let { nick, code } = req.body;
     if (!nick || !code) return res.json({ success: false, message: "Wypełnij dane!" });
 
+    // NOWOŚĆ: Usuwamy spacje z początku i końca nicku oraz kodu voucher
+    nick = nick.trim();
+    code = code.trim();
+
+    // Sprawdzamy kod w bazie danych
     db.get(`SELECT * FROM vouchers WHERE code = ? AND used = 0`, [code], async (err, row) => {
-        if (err || !row) return res.json({ success: false, message: "Nieprawidłowy kod!" });
+        if (err || !row) {
+            return res.json({ success: false, message: "Nieprawidłowy kod!" });
+        }
 
         const finalCommand = row.reward_cmd.replace("{nick}", nick);
         const mcSuccess = await sendMinecraftCommand(finalCommand);
@@ -170,7 +181,8 @@ app.post('/api/vouchers/redeem', (req, res) => {
             db.run(`INSERT INTO purchases (nick, item_name) VALUES (?, ?)`, [nick, "Voucher"]);
             res.json({ success: true, message: `Sukces! Nagroda z vouchera przyznana dla gracza ${nick}!` });
         } else {
-            res.json({ success: false, message: "Serwer gry jest offline. Spróbuj za chwilę." });
+            // Kod jest prawidłowy, ale serwer Minecraft jest wyłączony lub RCON nie odpowiada
+            res.json({ success: false, message: "Błąd połączenia RCON z serwerem Minecraft! Zgłoś to adminowi." });
         }
     });
 });
